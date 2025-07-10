@@ -1,6 +1,7 @@
 def parse_gff3(filepath):
     gene_dict = {}
     gene_order = {}
+    
     with open(filepath, 'r') as f:
         for line in f:
             if line.startswith("#"):
@@ -17,8 +18,15 @@ def parse_gff3(filepath):
             attr_parts = attributes.split(';')
             gene_id = None
             for attr in attr_parts:
-                if 'ID=' in attr:
-                    gene_id = attr.split('ID=')[1].split(':')[-1]
+                attr = attr.strip()
+                if attr.startswith("ID="):
+                    gene_id = attr.split("ID=")[1].split(":")[-1]
+                    break
+                elif 'gene_id=' in attr:
+                    gene_id = attr.split('gene_id=')[1].split(':')[-1]
+                    break
+                elif  'Name=' in attr:
+                    gene_id = attr.split('Name=')[1].split(':')[-1]
                     break
             if not gene_id:
                 continue
@@ -34,21 +42,3 @@ def parse_gff3(filepath):
         gene_order[chr_id].sort()
         gene_order[chr_id] = [gid for _,gid in gene_order[chr_id]]
     return gene_dict, gene_order
-
-if __name__ == "__main__":
-    print("GFF3 Parser")
-    filepath = input("Enter the path to GFF3 file: ")
-    
-    try:
-        gene_dict, gene_order = parse_gff3(filepath)
-        print(f"\n Successfully parsed {len(gene_dict)} genes from {filepath}\n")
-        
-        print("Sample genes (showing first 10):\n")
-        for i, (gene_id, (chr, start, end)) in enumerate(gene_dict.items()):
-            print(f"{gene_id}: {chr}, {start}-{end}")
-            if i == 9:
-                break   
-    except FileNotFoundError:
-        print("❌ File not found. Please check the path and try again.")
-    except Exception as e:
-        print(f"❌ An error occurred: {e}")
