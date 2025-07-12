@@ -1,6 +1,6 @@
 # Ortholog_Block_Compare
 Objectives
-Parse GFF3 genome annotations into structured gene data
+1. Parse GFF3 genome annotations into structured gene data
 
 
 Extract ±N neighboring genes around ortholog anchors
