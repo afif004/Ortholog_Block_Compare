@@ -1,3 +1,21 @@
+# Ortholog_Block_Compare
+
+## 🎯 Objectives
+1. Parse GFF3 genome annotations into structured gene data  
+2. Extract ±N neighboring genes around ortholog anchors  
+3. Determine gene order conservation using the Longest Common Subsequence (LCS) algorithm  
+4. Visualize synteny blocks with rearrangement metrics *(optional/experimental)*  
+5. Generate comparative reports  
+
+---
+
+## 📥 Inputs
+- `genome1.gff3`, `genome2.gff3`  
+  Annotation files in **GFF3** format  
+- `orthologs.csv`  
+  List of orthologous gene pairs in the format:  
+
+
 - **Block size parameter**  
 Number of upstream and downstream genes to include (±N)
 
