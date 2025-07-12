@@ -57,6 +57,10 @@ class App:
     def compare(self):
         try:
             N = int(self.n_entry.get())
+            if N < 0:
+                messagebox.showerror("Error", "N must be non-negative")
+                return
+            
             gff1, gff2 = self.gff1_entry.get(), self.gff2_entry.get()
             ortholog_file = self.ortholog_entry.get()
 
@@ -70,12 +74,30 @@ class App:
 
                 for row in reader:
                     gene1, gene2 = row
+                    
+                    if gene1 not in gene_dict1:
+                        result = f"! Gene {gene1} not found in genome1\n---\n"
+                        results.append(result)
+                        continue
+                    if gene2 not in gene_dict2:
+                        result = f"! Gene {gene2} not found in genome2\n---\n"
+                        results.append(result)
+                        continue
+                    
                     block1 = get_gene_block(gene1, gene_dict1, gene_order1, N)
                     block2 = get_gene_block(gene2, gene_dict2, gene_order2, N)
-                    match_len, lcs_seq = lcs(block1, block2)
-                    match_pct = round((match_len / max(len(block1), len(block2))) * 100, 2)
+                    
+                    if len(block1) == 0 and len(block2) == 0:
+                        match_pct = 100.0  # Both missing = consider matched
+                        lcs_seq = []
+                    elif len(block1) == 0 or len(block2) == 0:
+                        match_pct = 0.0  # Only one exists = no match
+                        lcs_seq = []
+                    else:
+                        match_len, lcs_seq = lcs(block1, block2)
+                        match_pct = round((match_len / max(len(block1), len(block2))) * 100, 2)
 
-                    result = f"🧬 {gene1} ↔ {gene2}\nBlock1: {block1}\nBlock2: {block2}\n" \
+                    result = f"{gene1} ↔ {gene2}\nBlock1: {block1}\nBlock2: {block2}\n" \
                              f"Match %: {match_pct}%, LCS: {lcs_seq}\n---\n"
                     results.append(result)
 
