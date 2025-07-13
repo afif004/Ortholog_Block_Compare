@@ -11,9 +11,9 @@
 
 ## 📥 Inputs
 - `genome1.gff3`, `genome2.gff3`  
-  Annotation files in **GFF3** format  
+  Annotation files in **GFF3** format downloaded from "https://ftp.ensemblgenomes.ebi.ac.uk/pub/plants"
 - `orthologs.csv`  
-  List of orthologous gene pairs in the format:  
+  List of orthologous gene pairs in **CSV** format downloaded from "https://plants.ensembl.org/info/data/biomart/"
 
 
 - **Block size parameter**  
