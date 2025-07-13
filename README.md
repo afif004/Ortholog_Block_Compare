@@ -49,5 +49,5 @@ Displays:
 - [Biopython](https://biopython.org/)  
 - [Pandas](https://pandas.pydata.org/)  
 - [Tkinter](https://wiki.python.org/moin/TkInter) (for GUI)  
-- [Matplotlib](https://matplotlib.org/) *(optional)*  
+- [Matplotlib](https://matplotlib.org/) *(for future updates)*  
 - [PyInstaller](https://www.pyinstaller.org/) *(for packaging)*  
