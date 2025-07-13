@@ -67,6 +67,11 @@ class App:
             gene_dict1, gene_order1 = parse_gff3(gff1)
             gene_dict2, gene_order2 = parse_gff3(gff2)
 
+            ortho_1_to_2 = {}
+            ortho_2_to_1 = {}
+            ortho_groups = {}
+            group_counter = 0
+
             with open(ortholog_file, 'r') as f:
                 reader = csv.reader(f)
                 header = next(reader)
@@ -75,30 +80,79 @@ class App:
                 for row in reader:
                     gene1, gene2 = row
                     
+                    if gene1 not in ortho_1_to_2:
+                        ortho_1_to_2[gene1] = set()
+                    ortho_1_to_2[gene1].add(gene2)
+                    
+                    if gene2 not in ortho_2_to_1:
+                        ortho_2_to_1[gene2] = set()
+                    ortho_2_to_1[gene2].add(gene1)
+                    
+                    if gene1 not in ortho_groups and gene2 not in ortho_groups:
+                        group_counter += 1
+                        ortho_groups[gene1] = group_counter
+                        ortho_groups[gene2] = group_counter
+                    elif gene1 in ortho_groups:
+                        ortho_groups[gene2] = ortho_groups[gene1]
+                    elif gene2 in ortho_groups:
+                        ortho_groups[gene1] = ortho_groups[gene2]
+                        
+            results = []
+            
+            with open(ortholog_file, 'r') as f:
+                reader = csv.reader(f)
+                header = next(reader)
+                
+                for row in reader:
+                    gene1, gene2 = row
+                    
                     if gene1 not in gene_dict1:
-                        result = f"! Gene {gene1} not found in genome1\n---\n"
-                        results.append(result)
                         continue
                     if gene2 not in gene_dict2:
-                        result = f"! Gene {gene2} not found in genome2\n---\n"
-                        results.append(result)
                         continue
                     
                     block1 = get_gene_block(gene1, gene_dict1, gene_order1, N)
                     block2 = get_gene_block(gene2, gene_dict2, gene_order2, N)
                     
-                    if len(block1) == 0 and len(block2) == 0:
-                        match_pct = 100.0  # Both missing = consider matched
+                    transformed1 = []
+                    for gene in block1:
+                        if gene in ortho_groups:
+                            transformed1.append(ortho_groups[gene])
+                        elif gene in ortho_1_to_2:
+                            for ortho in ortho_1_to_2[gene]:
+                                if ortho in ortho_groups:
+                                    transformed1.append(ortho_groups[ortho])                    
+                    
+                    transformed2 = []
+                    for gene in block2:
+                        if gene in ortho_groups:
+                            transformed2.append(ortho_groups[gene])
+                        elif gene in ortho_2_to_1:
+                            for ortho in ortho_2_to_1[gene]:
+                                if ortho in ortho_groups:
+                                    transformed2.append(ortho_groups[ortho])
+                    
+                    if not transformed1 and not transformed2:
+                        match_pct = 100.0 
                         lcs_seq = []
-                    elif len(block1) == 0 or len(block2) == 0:
-                        match_pct = 0.0  # Only one exists = no match
+                    elif not transformed1 or not transformed2:
+                        match_pct = 0.0
                         lcs_seq = []
                     else:
-                        match_len, lcs_seq = lcs(block1, block2)
-                        match_pct = round((match_len / max(len(block1), len(block2))) * 100, 2)
+                        match_len, lcs_seq_indices = lcs(transformed1, transformed2)
+                        match_pct = round((match_len / max(len(transformed1), len(transformed2))) * 100, 2)
+                        
+                        lcs_seq = [f"Group_{x}" for x in lcs_seq_indices]
 
-                    result = f"{gene1} ↔ {gene2}\nBlock1: {block1}\nBlock2: {block2}\n" \
-                             f"Match %: {match_pct}%, LCS: {lcs_seq}\n---\n"
+                    result = (
+                        f"🧬 {gene1} (Group {ortho_groups.get(gene1, '?')}) ↔ {gene2} (Group {ortho_groups.get(gene2, '?')})\n"
+                        f"Block1: {block1}\n"
+                        f"Transformed1: {[ortho_groups.get(g, '?') for g in block1]}\n"
+                        f"Block2: {block2}\n"
+                        f"Transformed2: {[ortho_groups.get(g, '?') for g in block2]}\n"
+                        f"Match %: {match_pct}%, Conserved Groups: {lcs_seq}\n"
+                        "---\n"
+                    )
                     results.append(result)
 
             self.output.delete(1.0, tk.END)
